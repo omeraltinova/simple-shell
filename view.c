@@ -316,6 +316,10 @@ static void activate(GtkApplication *app_local, gpointer user_data) {
 
 void view_init(int argc, char **argv) {
     app = gtk_application_new("com.modular.shell", G_APPLICATION_DEFAULT_FLAGS);
+
+    // Karanlık tema tercihini uygula
+    GtkSettings *settings = gtk_settings_get_default();
+    g_object_set(settings, "gtk-application-prefer-dark-theme", TRUE, NULL);
     g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
 }
 
