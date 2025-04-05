@@ -296,6 +296,8 @@ static gboolean poll_messages(gpointer user_data) {
 static void activate(GtkApplication *app_local, gpointer user_data) {
     GtkWidget *window = gtk_application_window_new(app_local);
     gtk_window_set_title(GTK_WINDOW(window), "Modüler Terminal");
+
+    
     gtk_window_set_default_size(GTK_WINDOW(window), 800, 500);
 
     GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
@@ -323,6 +325,16 @@ void view_init(int argc, char **argv) {
     g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
 }
 
+// Uygulama CSS ile siyah temada çalışsın
+// CSS temayı pencere gösterildikten sonra uygula
 void view_main_loop() {
+    g_application_run(G_APPLICATION(app), 0, NULL);
+
+    GtkCssProvider *css = gtk_css_provider_new();
+    gtk_css_provider_load_from_string(css,"* { background-color: #000000; color: #FFFFFF; }");
+    gtk_style_context_add_provider_for_display(
+        gdk_display_get_default(),
+        GTK_STYLE_PROVIDER(css),
+        GTK_STYLE_PROVIDER_PRIORITY_USER);
     g_application_run(G_APPLICATION(app), 0, NULL);
 }
