@@ -143,6 +143,18 @@ static void on_input_activated(GtkWidget *widget, gpointer user_data) {
         gtk_editable_set_text(GTK_EDITABLE(tab_inputs[tab_index]), "");
         return;
     }
+    // 'cd <path>' komutu kontrolü
+    if (g_str_has_prefix(text, "cd ")) {
+        const char *path = text + 3;
+        if (chdir(path) == 0) {
+            view_append_output_colored(tab_index, "Dizin değiştirildi\n", "lightgreen");
+        } else {
+            view_append_output_colored(tab_index, "Hedef dizine geçilemedi\n", "red");
+        }
+        gtk_editable_set_text(GTK_EDITABLE(tab_inputs[tab_index]), "");
+        return;
+    }
+
     if (input_callback && text && *text) {
         gchar *prefix = g_strdup(">command input: ");
         view_append_output_colored(tab_index, prefix, "orange");
