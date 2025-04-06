@@ -18,6 +18,11 @@ static int next_index = 0;
 static int history_index[MAX_TABS] = {0};
 
 static void (*input_callback)(int tab_index, const char *input) = NULL;
+static void (*message_received_callback)(const char *msg);
+
+void view_set_message_callback(void (*callback)(const char *msg)) {
+    message_received_callback = callback;
+}
 
 static void scroll_to_bottom(int tab_index) {
     GtkTextView *text_view = GTK_TEXT_VIEW(tab_outputs[tab_index]);
@@ -77,100 +82,19 @@ static void on_entry_key_press(GtkEventControllerKey *controller, guint keyval, 
 static void on_input_activated(GtkWidget *widget, gpointer user_data) {
     int tab_index = GPOINTER_TO_INT(user_data);
     const char *text = gtk_editable_get_text(GTK_EDITABLE(tab_inputs[tab_index]));
-
-    if (g_strcmp0(text, "clear") == 0) {
-        GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(tab_outputs[tab_index]));
-        gtk_text_buffer_set_text(buffer, "", -1);
-        gtk_editable_set_text(GTK_EDITABLE(tab_inputs[tab_index]), "");
-        return;
-    }
-    if (g_strcmp0(text, "help") == 0) {
-        view_append_output_colored(tab_index, "Desteklenen komutlar:\n", "lightblue");
-        view_append_output_colored(tab_index,
-            " - clear: ekranı temizler\n"
-            " - help: yardım bilgisi\n"
-            " - version: sürüm bilgisini gösterir\n"
-            " - reset: terminali sıfırlar\n"
-            " - date: sistem tarihini gösterir\n"
-            " - whoami: kullanıcı adınızı gösterir\n"
-            " - uptime: sistem çalışma süresini gösterir\n"
-            " - joke: rastgele bir şaka yapar\n"
-            " "
-            " - @msg <mesaj>: mesaj gönderir\n",
-            "lightblue");
-        gtk_editable_set_text(GTK_EDITABLE(tab_inputs[tab_index]), "");
-        return;
-    }
-    if (g_strcmp0(text, "version") == 0) {
-        view_append_output_colored(tab_index, "Modüler Terminal v1.0\n", "lightgreen");
-        gtk_editable_set_text(GTK_EDITABLE(tab_inputs[tab_index]), "");
-        return;
-    }
-    if (g_strcmp0(text, "reset") == 0) {
-        GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(tab_outputs[tab_index]));
-        gtk_text_buffer_set_text(buffer, "", -1);
-        scroll_to_bottom(tab_index);
-        gtk_editable_set_text(GTK_EDITABLE(tab_inputs[tab_index]), "");
-        return;
-    }
-    if (g_strcmp0(text, "date") == 0) {
-        time_t t = time(NULL);
-        char *time_str = ctime(&t);
-        view_append_output_colored(tab_index, time_str, "lightgreen");
-        gtk_editable_set_text(GTK_EDITABLE(tab_inputs[tab_index]), "");
-        return;
-    }
-    if (g_strcmp0(text, "whoami") == 0) {
-        const char *user = g_get_user_name();
-        view_append_output_colored(tab_index, user, "lightblue");
-        view_append_output_colored(tab_index, "\n", "lightblue");
-        gtk_editable_set_text(GTK_EDITABLE(tab_inputs[tab_index]), "");
-        return;
-    }
-    if (g_strcmp0(text, "uptime") == 0) {
-        FILE *fp = fopen("/proc/uptime", "r");
-        if (fp) {
-            double up;
-            fscanf(fp, "%lf", &up);
-            fclose(fp);
-            int hours = (int)(up / 3600);
-            int minutes = ((int)up % 3600) / 60;
-            int seconds = (int)up % 60;
-            char buffer[128];
-            snprintf(buffer, sizeof(buffer), "Sistem %d saat %d dakika %d saniyedir açık\n", hours, minutes, seconds);
-            view_append_output_colored(tab_index, buffer, "lightyellow");
-        } else {
-            view_append_output_colored(tab_index, "Uptime bilgisi alınamadı\n", "red");
-        }
-        gtk_editable_set_text(GTK_EDITABLE(tab_inputs[tab_index]), "");
-        return;
-    }
-    if (g_strcmp0(text, "joke") == 0) {
-        view_append_output_colored(tab_index, "Why do programmers hate nature?\nIt has too many bugs.\n", "magenta");
-        gtk_editable_set_text(GTK_EDITABLE(tab_inputs[tab_index]), "");
-        return;
-    }
-    // 'cd <path>' komutu kontrolü
-    if (g_str_has_prefix(text, "cd ")) {
-        const char *path = text + 3;
-        if (chdir(path) == 0) {
-            view_append_output_colored(tab_index, "Dizin değiştirildi\n", "lightgreen");
-        } else {
-            view_append_output_colored(tab_index, "Hedef dizine geçilemedi\n", "red");
-        }
-        gtk_editable_set_text(GTK_EDITABLE(tab_inputs[tab_index]), "");
-        return;
-    }
-
+    
     if (input_callback && text && *text) {
+        // Kullanıcı girdisini göster
         gchar *prefix = g_strdup(">command input: ");
         view_append_output_colored(tab_index, prefix, "orange");
         view_append_output_colored(tab_index, text, "gold");
         view_append_output_colored(tab_index, "\n", "gold");
         g_free(prefix);
+        
+        // Controller'a gönder
         input_callback(tab_index, text);
     }
-    history_index[tab_index] = model_get_history_count();
+    
     gtk_editable_set_text(GTK_EDITABLE(tab_inputs[tab_index]), "");
 }
 
@@ -200,7 +124,6 @@ static void close_tab(GtkWidget *child) {
         }
     }
 }
-
 
 static GtkWidget* create_terminal_tab(int index) {
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
@@ -295,23 +218,32 @@ void view_append_output(int tab_index, const char *text) {
     }
 }
 
+GtkWidget* view_get_output_widget(int tab_index) {
+    if (tab_index >= 0 && tab_index < MAX_TABS)
+        return tab_outputs[tab_index];
+    return NULL;
+}
+
 static gboolean poll_messages(gpointer user_data) {
     static char last_msg[256] = "";
     
-    // shm_ptr'ye doğrudan erişim yerine model API kullan
     const char *msg = model_peek_message();
     
     if (msg && msg[0] != '\0' && strcmp(msg, last_msg) != 0) {
-        strncpy(last_msg, msg, sizeof(last_msg));
+        strncpy(last_msg, msg, sizeof(last_msg) - 1);
+        last_msg[sizeof(last_msg) - 1] = '\0';  // Güvenli null-terminasyon
+        
+        // Tüm aktif sekmelere mesajı gönder
         for (int i = 0; i < MAX_TABS; i++) {
             if (tab_outputs[i] && GTK_IS_TEXT_VIEW(tab_outputs[i])) {
-                view_append_output(i, msg);
+                view_append_output_colored(i, msg, "deepskyblue");
                 view_append_output(i, "\n");
             }
         }
+        
         model_clear_message(); // Mesajı temizle
     }
-    return TRUE;
+    return G_SOURCE_CONTINUE;
 }
 
 static void activate(GtkApplication *app_local, gpointer user_data) {

@@ -236,7 +236,7 @@ void model_execute_command(int tab_index, const char *cmdline) {
         close(pipefd[1]);
         
         // Process tablosuna ekle
-        int proc_index = add_process(pid, cmdline, tab_index);
+        add_process(pid, cmdline, tab_index); // Dönen değeri kullanmıyoruz
 
         int status = 0;
         int waited = 0;
@@ -259,7 +259,9 @@ void model_execute_command(int tab_index, const char *cmdline) {
         if (waited >= timeout_ms) {
             kill(pid, SIGKILL);
             update_process_status(pid, 2); // killed
-            view_append_output(tab_index, "\n[Muhtemel hatalı girişten dolayı komut zaman aşımına uğradı ve sonlandırıldı]\n");
+            if (output_callback) {
+                output_callback(tab_index, "\n[Komut zaman aşımına uğradı]\n", "red");
+            }
             waitpid(pid, NULL, 0);
         }
 

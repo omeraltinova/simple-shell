@@ -10,6 +10,7 @@
 #include <time.h>     // Tarih ve zaman fonksiyonları için gerekli
 
 #define MAX_CMD_LEN 256
+#define MAX_TABS 10 // Sabit bir MAX_TABS değeri tanımlandı
 
 // İleri bildirimler (Forward Declarations)
 static void show_help(int tab_index);
@@ -18,10 +19,14 @@ static void show_whoami(int tab_index);
 static void show_uptime(int tab_index);
 static void show_joke(int tab_index);
 static void handle_cd_command(int tab_index, const char *path);
+static gboolean check_messages(gpointer user_data);
 
 // Bu fonksiyon view'den gelen inputu işleyip ilgili model fonksiyonuna yönlendirir
 void on_user_input(int tab_index, const char *input) {
-    // Özel komut kontrolleri
+    // Komut geçmişini güncelle
+    model_add_to_history(input);
+    
+    // Özel komutları işle
     if (strcmp(input, "clear") == 0) {
         view_clear_terminal(tab_index);
         return;
@@ -57,13 +62,13 @@ void on_user_input(int tab_index, const char *input) {
         return;
     }
     
-    // CD komutu kontrolü
+    // cd komutu
     if (g_str_has_prefix(input, "cd ")) {
         handle_cd_command(tab_index, input + 3);
         return;
     }
     
-    // Mesaj mı yoksa Shell komutu mu?
+    // Mesajlar ve normal komutlar
     if (strncmp(input, "@msg ", 5) == 0) {
         const char *msg = input + 5;
         model_send_message(tab_index, msg);
@@ -125,8 +130,39 @@ static void handle_cd_command(int tab_index, const char *path) {
     }
 }
 
+static void handle_command_output(int tab_index, const char *output, const char *color) {
+    if (output && *output) {
+        if (color && *color)
+            view_append_output_colored(tab_index, output, color);
+        else
+            view_append_output(tab_index, output);
+    }
+}
+
+static gboolean check_messages(gpointer user_data) {
+    const char *msg = model_peek_message();
+    if (msg && msg[0] != '\0') {
+        for (int i = 0; i < MAX_TABS; i++) {
+            // Var olan sekmelere mesajı gönder
+            if (i < MAX_TABS && GTK_IS_TEXT_VIEW(view_get_output_widget(i))) {
+                view_append_output_colored(i, msg, "deepskyblue");
+                view_append_output(i, "\n");
+            }
+        }
+        model_clear_message();
+    }
+    return G_SOURCE_CONTINUE;
+}
+
 void controller_start(int argc, char **argv) {
+    model_init();
+    model_set_output_callback(handle_command_output);
+    
     view_init(argc, argv);
     view_set_input_callback(on_user_input);
+    
+    // Mesaj kontrolü için timer ekle
+    g_timeout_add(500, check_messages, NULL);
+    
     view_main_loop();
 }
