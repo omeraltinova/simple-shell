@@ -4,7 +4,6 @@
 
 **Modüler Terminal**, GTK4 tabanlı çoklu sekme destekli bir terminal emülatörüdür. Bu proje, sistem programlama konseptlerini (process yönetimi, IPC), grafiksel arayüz geliştirmeyi ve modüler tasarımı (MVC mimarisi) bir araya getirir.
 
-![Modüler Terminal](https://placeholder.com/modüler-terminal-ekran-görüntüsü.png)
 
 ## Özellikler
 
@@ -158,26 +157,7 @@ Bir sekmeden diğerine mesaj göndermek için:
 
 Mesajlar tüm sekmelerde **mavi renkle** gösterilir ve **gönderici sekme numarası** ile etiketlenir.
 
-## Katkıda Bulunma
 
-1. Projeyi forklayın  
-2. Feature branch'i oluşturun  
-   ```bash
-   git checkout -b feature/amazing-feature
-   ```
-3. Değişikliklerinizi commit edin  
-   ```bash
-   git commit -m "Add some amazing feature"
-   ```
-4. Branch'inizi push edin  
-   ```bash
-   git push origin feature/amazing-feature
-   ```
-5. Pull request açın  
-
-## Lisans
-
-Bu proje MIT lisansı altında lisanslanmıştır.
 
 ---
 
