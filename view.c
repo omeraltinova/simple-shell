@@ -34,10 +34,17 @@ static void insert_colored_text(GtkTextBuffer *buffer, const char *text, const c
     gtk_text_buffer_insert_with_tags(buffer, &end, text, -1, tag, NULL);
 }
 
-static void view_append_output_colored(int tab_index, const char *text, const char *color) {
+void view_append_output_colored(int tab_index, const char *text, const char *color) {
     if (tab_index < 0 || tab_index >= MAX_TABS || !tab_outputs[tab_index] || !text) return;
     GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(tab_outputs[tab_index]));
     insert_colored_text(buffer, text, color);
+    scroll_to_bottom(tab_index);
+}
+
+void view_clear_terminal(int tab_index) {
+    if (tab_index < 0 || tab_index >= MAX_TABS || !tab_outputs[tab_index]) return;
+    GtkTextBuffer *buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(tab_outputs[tab_index]));
+    gtk_text_buffer_set_text(buffer, "", -1);
     scroll_to_bottom(tab_index);
 }
 
@@ -290,17 +297,19 @@ void view_append_output(int tab_index, const char *text) {
 
 static gboolean poll_messages(gpointer user_data) {
     static char last_msg[256] = "";
-    extern char *shm_ptr;
-
-    if (shm_ptr && shm_ptr[0] != '\0' && strcmp(shm_ptr, last_msg) != 0) {
-        strncpy(last_msg, shm_ptr, sizeof(last_msg));
+    
+    // shm_ptr'ye doğrudan erişim yerine model API kullan
+    const char *msg = model_peek_message();
+    
+    if (msg && msg[0] != '\0' && strcmp(msg, last_msg) != 0) {
+        strncpy(last_msg, msg, sizeof(last_msg));
         for (int i = 0; i < MAX_TABS; i++) {
-        if (tab_outputs[i] && GTK_IS_TEXT_VIEW(tab_outputs[i])) {
-                view_append_output(i, shm_ptr);
+            if (tab_outputs[i] && GTK_IS_TEXT_VIEW(tab_outputs[i])) {
+                view_append_output(i, msg);
                 view_append_output(i, "\n");
             }
         }
-        shm_ptr[0] = '\0';
+        model_clear_message(); // Mesajı temizle
     }
     return TRUE;
 }
