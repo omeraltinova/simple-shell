@@ -20,6 +20,18 @@ static int history_index[MAX_TABS] = {0};
 static void (*input_callback)(int tab_index, const char *input) = NULL;
 static void (*message_received_callback)(const char *msg);
 
+void apply_css(void) {
+    GtkCssProvider *provider = gtk_css_provider_new();
+    GdkDisplay *display = gdk_display_get_default(); 
+    gtk_css_provider_load_from_path(provider, "style.css"); 
+
+    gtk_style_context_add_provider_for_display(           
+        display,
+        GTK_STYLE_PROVIDER(provider),
+        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION
+    );
+}
+
 void view_set_message_callback(void (*callback)(const char *msg)) {
     message_received_callback = callback;
 }
@@ -148,6 +160,7 @@ static GtkWidget* create_terminal_tab(int index) {
     gtk_widget_add_controller(entry, key_ctrl);
 
     GtkWidget *send_button = gtk_button_new_with_label("Gönder");
+    gtk_button_set_has_frame(GTK_BUTTON(send_button), FALSE);
     gtk_widget_set_margin_top(send_button, 6);
     gtk_widget_set_margin_bottom(send_button, 6);
     gtk_widget_set_margin_end(send_button, 10);
@@ -159,6 +172,7 @@ static GtkWidget* create_terminal_tab(int index) {
     gtk_box_append(GTK_BOX(input_row), send_button);
 
     GtkWidget *scroll_button = gtk_button_new_with_label("↓");
+    gtk_button_set_has_frame(GTK_BUTTON(scroll_button), FALSE); // dikkat!
     gtk_widget_set_margin_top(scroll_button, 6);
     gtk_widget_set_margin_bottom(scroll_button, 6);
     gtk_widget_set_tooltip_text(scroll_button, "En alta git");
@@ -167,6 +181,8 @@ static GtkWidget* create_terminal_tab(int index) {
 
     gtk_box_append(GTK_BOX(box), scroll);
     gtk_box_append(GTK_BOX(box), input_row);
+    
+   
 
     tab_outputs[index] = text_view;
     tab_inputs[index] = entry;
@@ -248,6 +264,7 @@ static gboolean poll_messages(gpointer user_data) {
 
 static void activate(GtkApplication *app_local, gpointer user_data) {
     GtkWidget *window = gtk_application_window_new(app_local);
+    apply_css();
     gtk_window_set_title(GTK_WINDOW(window), "Modüler Terminal");
     gtk_window_set_default_size(GTK_WINDOW(window), 800, 500);
 
@@ -258,6 +275,7 @@ static void activate(GtkApplication *app_local, gpointer user_data) {
     gtk_box_append(GTK_BOX(vbox), GTK_WIDGET(notebook));
 
     GtkWidget *btn_new_tab = gtk_button_new_with_label("+");
+    gtk_button_set_has_frame(GTK_BUTTON(btn_new_tab), FALSE);
     gtk_notebook_set_action_widget(notebook, btn_new_tab, GTK_PACK_END);
     g_signal_connect_swapped(btn_new_tab, "clicked", G_CALLBACK(view_create_tab), NULL);
 

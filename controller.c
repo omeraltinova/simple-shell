@@ -21,6 +21,8 @@ static void show_joke(int tab_index);
 static void handle_cd_command(int tab_index, const char *path);
 static gboolean check_messages(gpointer user_data);
 
+void apply_css(void);
+
 // Bu fonksiyon view'den gelen inputu işleyip ilgili model fonksiyonuna yönlendirir
 void on_user_input(int tab_index, const char *input) {
     // Komut geçmişini güncelle
@@ -159,6 +161,7 @@ void controller_start(int argc, char **argv) {
     model_set_output_callback(handle_command_output);
     
     view_init(argc, argv);
+    // apply_css();
     view_set_input_callback(on_user_input);
     
     // Mesaj kontrolü için timer ekle

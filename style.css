@@ -1,0 +1,81 @@
+/* Main window and root container */
+window,
+box,
+grid,
+stack {
+  background-color: #000000;
+}
+
+/* Notebook (tab container) */
+notebook {
+  background-color: #000000;
+  border: none;
+}
+
+/* Tab header bar */
+notebook > header {
+  background-color: #000000;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Individual tabs */
+notebook tab {
+  background-color: #111111;
+  color: #ffffff;
+  border: none;
+  margin: 0;
+  padding: 6px 12px;
+}
+
+/* Active tab */
+notebook tab:checked {
+  background-color: #000000;
+  border-bottom: 2px solid #ffffff;
+}
+
+/* Buttons (+, Gönder, X) */
+button {
+  background-color: black;
+  color: #ffffff;
+  border: white;
+  border-radius: 0;
+  padding: 6px 12px;
+  margin: 0;
+  box-shadow: none;
+}
+button:hover {
+  background-color: #222222; /* Slightly lighter black */
+  border-color: #555555; /* Lighter border on hover */
+}
+/* Input field */
+entry {
+  background-color: #111111;
+  color: #ffffff;
+  border: 1px solid #333333;
+  border-radius: 0;
+  padding: 6px;
+}
+
+/* Terminal text view */
+textview {
+  background-color: #000000;
+  color: #ffffff;
+  font-family: monospace;
+  padding: 10px;
+}
+
+/* Scrollbars */
+scrollbar {
+  background-color: #000000;
+}
+
+scrollbar slider {
+  background-color: #333333;
+  border-radius: 0;
+}
+
+scrollbar trough {
+  background-color: #000000;
+}
