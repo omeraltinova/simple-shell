@@ -8,3 +8,32 @@ salih
 kerem
 burak oyunda
 sagopa kajmer
+TEST
+MERHABA
+programlama örnekleri
+python script
+java uygulaması
+C++ kodu
+linux komutları
+grep örneği
+burak.test@gmail.com
+mehmet.dev@example.com
+192.168.1.1
+10.0.0.15
+2023-04-15
+2023-05-20
+bu satırda birden fazla burak kelimesi geçiyor burak
+bu satırda birden fazla test kelimesi var test test
+burak: aktif kullanıcı
+kerem: yönetici
+salih: ziyaretçi
+faruk: developer
+# bu bir yorum satırıdır
+// bu da başka bir yorum
+/* çoklu satır yorum örneği
+   ikinci satır */
+<html><head><title>Örnek HTML</title></head></html>
+{"name": "burak", "role": "active_user"}
+{"name": "kerem", "role": "kader_mahkumu"}
+{"name": "salih", "role": "ndng_unlost"}
+{"name": "faruk", "role": "masa"}
