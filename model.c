@@ -123,7 +123,7 @@ void clean_process_table() {
     int i = 0;
     while (i < process_count) {
         if (process_table[i].status != 0) {
-            // Process çalışmayı bitirmiş, tablodan çıkar
+                      // Process çalışmayı bitirmiş, tablodan çıkar
             if (i < process_count - 1) {
                 memmove(&process_table[i], &process_table[i+1], 
                         sizeof(ProcessInfo) * (process_count - i - 1));
@@ -152,7 +152,7 @@ void check_zombie_processes() {
     }
     
     // Belirli aralıklarla process tablosunu temizle
-    clean_process_table();
+    // clean_process_table();
 }
 
 /**
@@ -165,6 +165,7 @@ char* get_process_list() {
     buffer[0] = '\0';
     
     check_zombie_processes(); // Önce zombie'leri temizle
+    
     
     strcat(buffer, "PID\tSTATUS\tCOMMAND\n");
     for (int i = 0; i < process_count; i++) {
